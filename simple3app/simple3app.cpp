@@ -1,11 +1,35 @@
 // simple3app.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+// Win32 API
+#include<Windows.h>
+// Smaller header
+#define WIN32_LEAN_AND_MEAN
 #include <iostream>
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	auto driveSymLink = CreateFile(
+		L"\\\\.\\Simple3Link",
+		GENERIC_READ, 
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL,
+		OPEN_EXISTING,
+		0,
+		NULL
+	);
+
+	if (driveSymLink != INVALID_HANDLE_VALUE) {
+
+		std::cout << "Successfully opened driver symlink!" << std::endl;
+		CloseHandle(driveSymLink);
+		return 0;
+
+	}
+	
+	std::cout << "Failed opening driver symlink with error: " << GetLastError() << std::endl;
+	return 1;
+
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
