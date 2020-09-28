@@ -34,16 +34,16 @@ NTSTATUS DriverEntry(
 	auto status = STATUS_SUCCESS;
 
 	// Device name
-	PUNICODE_STRING devName();
+	UNICODE_STRING devName;
 
 	// Initialize device name with \Device\Simple2
-	RtlInitUnicodeString(devName, L"\\Device\\Simple2");
+	RtlInitUnicodeString(&devName, L"\\Device\\Simple2");
 
 	// Create device
 	status = IoCreateDevice(
 		DriverObject,
 		0,
-		devName,
+		&devName,
 		SIMPLE_2_DEVICE_TYPE,
 		SIMPLE_2_DEVICE_CHARACTERISTICS,
 		SIMPLE_2_DEVICE_EXCLUSIVE,
