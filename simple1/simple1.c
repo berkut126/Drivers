@@ -1,6 +1,10 @@
 // Core Windows kernel definitions for all drivers
 #include <ntddk.h>
 
+// Declarations
+// Entry point
+DRIVER_INITIALIZE DriverEntry;
+
 // Driver entry point
 NTSTATUS DriverEntry(
 	_In_ PDRIVER_OBJECT     DriverObject,
