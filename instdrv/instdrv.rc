@@ -18,18 +18,24 @@
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#ifndef APSTUDIO_INVOKED\r\n"
     "#include ""targetver.h""\r\n"
@@ -39,7 +45,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"
@@ -57,7 +63,6 @@ BEGIN
     "\0"
 END
 
-/////////////////////////////////////////////////////////////////////////////
 #endif    // APSTUDIO_INVOKED
 
 
@@ -68,49 +73,54 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON         "res\\instdrv.ico"
+IDR_MAINFRAME           ICON                    "res\\instdrv.ico"
 
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE 9, 1
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_INSTDRV_DIALOG DIALOGEX  0, 0, 320, 200
-STYLE DS_SHELLFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION
- | WS_THICKFRAME
- | WS_SYSMENU
- | WS_MINIMIZEBOX
- | WS_MAXIMIZEBOX
+IDD_INSTDRV_DIALOG DIALOGEX 0, 0, 579, 190
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_APPWINDOW
-CAPTION ""
-FONT 8, "MS Shell Dlg"
+CAPTION "instdrv"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,209,179,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,263,179,50,14
-    CTEXT           "TODO: Place dialog controls here.",IDC_STATIC,10,96,300,8
+    EDITTEXT        IDC_PATH,111,18,461,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LOG,112,35,461,148,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        IDC_SER,7,90,102,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SYM,7,118,101,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDB_PATH,550,17,22,15
+    PUSHBUTTON      "Add",IDB_ADD,7,135,50,14
+    PUSHBUTTON      "Remove",IDB_REMOVE,60,135,50,14
+    PUSHBUTTON      "Start",IDB_START,7,152,50,14
+    PUSHBUTTON      "Stop",IDB_STOP,60,152,50,14
+    PUSHBUTTON      "Open",IDB_OPEN,7,169,50,14
+    PUSHBUTTON      "Close",IDB_CLOSE,60,169,50,14
+    RTEXT           "File path:",IDT_SEL,7,20,99,11
+    CTEXT           "Service name:",IDT_SER,7,78,100,8
+    CTEXT           "Symbolic Link Name:",IDT_SYM,7,107,99,8
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
-VS_VERSION_INFO     VERSIONINFO
-  FILEVERSION       1,0,0,1
-  PRODUCTVERSION    1,0,0,1
- FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
- FILEFLAGS VS_FF_DEBUG
+ FILEFLAGS 0x1L
 #else
  FILEFLAGS 0x0L
 #endif
- FILEOS VOS_NT_WINDOWS32
- FILETYPE VFT_APP
- FILESUBTYPE VFT2_UNKNOWN
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
@@ -118,19 +128,20 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "TODO: <Company name>"
             VALUE "FileDescription", "instdrv"
-            VALUE "FileVersion",     "1.0.0.1"
-            VALUE "InternalName",    "instdrv.exe"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "instdrv.exe"
             VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
-            VALUE "OriginalFilename","instdrv.exe"
+            VALUE "OriginalFilename", "instdrv.exe"
             VALUE "ProductName", "TODO: <Product name>"
-            VALUE "ProductVersion",  "1.0.0.1"
+            VALUE "ProductVersion", "1.0.0.1"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x0409, 1200
+        VALUE "Translation", 0x409, 1200
     END
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -143,23 +154,28 @@ BEGIN
     IDD_INSTDRV_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 313
+        RIGHTMARGIN, 572
         TOPMARGIN, 7
-        BOTTOMMARGIN, 193
+        BOTTOMMARGIN, 183
     END
 END
 #endif    // APSTUDIO_INVOKED
 
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
-// String Table
+// AFX_DIALOG_LAYOUT
 //
 
+IDD_INSTDRV_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
 
 
-#endif
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -173,12 +189,13 @@ END
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE 9, 1
-#include "res\\instdrv.rc2"  // non-Microsoft Visual C++ edited resources
+#include "res\instdrv.rc2"  // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"      // Standard components
 #if !defined(_AFXDLL)
 #include "afxribbon.rc"   // MFC ribbon and control bar resources
 #endif
 #endif
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

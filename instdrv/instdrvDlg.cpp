@@ -26,11 +26,29 @@ CinstdrvDlg::CinstdrvDlg(CWnd* pParent /*=nullptr*/)
 void CinstdrvDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	//  DDX_Control(pDX, IDB_ADD, m_butAdd);
+	//  DDX_Control(pDX, IDB_CLOSE, m_butClose);
+	//  DDX_Control(pDX, IDB_OPEN, m_butOpen);
+	//  DDX_Control(pDX, IDB_PATH, m_butPath);
+	//  DDX_Control(pDX, IDB_REMOVE, m_butRemove);
+	//  DDX_Control(pDX, IDB_START, m_butStart);
+	//  DDX_Control(pDX, IDB_STOP, m_butStop);
+	DDX_Control(pDX, IDC_LOG, m_edtLog);
+	DDX_Control(pDX, IDC_PATH, m_edtPath);
+	DDX_Control(pDX, IDC_SER, m_edtSer);
+	DDX_Control(pDX, IDC_SYM, m_edtSym);
 }
 
 BEGIN_MESSAGE_MAP(CinstdrvDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDB_ADD, &CinstdrvDlg::OnClickedIdbAdd)
+	ON_BN_CLICKED(IDB_CLOSE, &CinstdrvDlg::OnClickedIdbClose)
+	ON_BN_CLICKED(IDB_OPEN, &CinstdrvDlg::OnClickedIdbOpen)
+	ON_BN_CLICKED(IDB_PATH, &CinstdrvDlg::OnClickedIdbPath)
+	ON_BN_CLICKED(IDB_REMOVE, &CinstdrvDlg::OnClickedIdbRemove)
+	ON_BN_CLICKED(IDB_START, &CinstdrvDlg::OnClickedIdbStart)
+	ON_BN_CLICKED(IDB_STOP, &CinstdrvDlg::OnClickedIdbStop)
 END_MESSAGE_MAP()
 
 
@@ -86,3 +104,45 @@ HCURSOR CinstdrvDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CinstdrvDlg::OnClickedIdbAdd()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbClose()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbOpen()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbPath()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbRemove()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbStart()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CinstdrvDlg::OnClickedIdbStop()
+{
+	// TODO: Add your control notification handler code here
+}
