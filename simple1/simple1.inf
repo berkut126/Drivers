@@ -1,0 +1,86 @@
+;
+; simple1.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=simple1.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+simple1_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+simple1.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%simple1.DeviceDesc%=simple1_Device, Root\simple1 ; TODO: edit hw-id
+
+[simple1_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+simple1.sys
+
+;-------------- Service installation
+[simple1_Device.NT.Services]
+AddService = simple1,%SPSVCINST_ASSOCSERVICE%, simple1_Service_Inst
+
+; -------------- simple1 driver install sections
+[simple1_Service_Inst]
+DisplayName    = %simple1.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\simple1.sys
+
+;
+;--- simple1_Device Coinstaller installation ------
+;
+
+[simple1_Device.NT.CoInstallers]
+AddReg=simple1_Device_CoInstaller_AddReg
+CopyFiles=simple1_Device_CoInstaller_CopyFiles
+
+[simple1_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[simple1_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[simple1_Device.NT.Wdf]
+KmdfService =  simple1, simple1_wdfsect
+[simple1_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "simple1 Installation Disk"
+simple1.DeviceDesc = "simple1 Device"
+simple1.SVCDESC = "simple1 Service"
