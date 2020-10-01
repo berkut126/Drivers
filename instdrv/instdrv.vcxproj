@@ -189,6 +189,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CScMgr.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="instdrv.h" />
     <ClInclude Include="instdrvDlg.h" />
@@ -197,6 +198,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CScMgr.cpp" />
     <ClCompile Include="instdrv.cpp" />
     <ClCompile Include="instdrvDlg.cpp" />
     <ClCompile Include="pch.cpp">

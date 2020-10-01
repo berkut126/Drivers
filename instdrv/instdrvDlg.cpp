@@ -7,6 +7,7 @@
 #include "instdrv.h"
 #include "instdrvDlg.h"
 #include "afxdialogex.h"
+#include "CScMgr.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -108,41 +109,101 @@ HCURSOR CinstdrvDlg::OnQueryDragIcon()
 
 void CinstdrvDlg::OnClickedIdbAdd()
 {
-	// TODO: Add your control notification handler code here
+	auto manager = CScMgr();
+	CString path, name;
+	m_edtPath.GetWindowText(path);
+	m_edtSer.GetWindowText(name);
+	service = manager.InstallDriver(path, name);
 }
 
 
 void CinstdrvDlg::OnClickedIdbClose()
 {
-	// TODO: Add your control notification handler code here
+	if (symlink == NULL)
+		return;
+	auto manager = CScMgr();
+	manager.CloseDevice(symlink);
 }
 
 
 void CinstdrvDlg::OnClickedIdbOpen()
 {
-	// TODO: Add your control notification handler code here
+	if (symlink == NULL)
+		return;
+	auto manager = CScMgr();
+	CString symlinkPath;
+	symlink = manager.OpenDevice(symlinkPath);
 }
 
 
 void CinstdrvDlg::OnClickedIdbPath()
 {
-	// TODO: Add your control notification handler code here
+	CFileDialog opendialog(true);
+	if (opendialog.DoModal() == IDOK) {
+		m_edtPath.SetWindowText(opendialog.GetPathName());
+	}
 }
 
 
 void CinstdrvDlg::OnClickedIdbRemove()
 {
-	// TODO: Add your control notification handler code here
+	if (service == NULL)
+		// Do nothing
+		return;
+	auto manager = CScMgr();
+	CString name;
+	m_edtSer.GetWindowText(name);
+	manager.DeleteDriver(name);
 }
 
 
 void CinstdrvDlg::OnClickedIdbStart()
 {
-	// TODO: Add your control notification handler code here
+	if (service == NULL)
+		return;
+	auto manager = CScMgr();
+	CString name;
+	m_edtSer.GetWindowText(name);
+	manager.RunDriver(service, name);
 }
 
 
 void CinstdrvDlg::OnClickedIdbStop()
 {
-	// TODO: Add your control notification handler code here
+	if (service == NULL)
+		return;
+	auto manager = CScMgr();
+	CString name;
+	m_edtSer.GetWindowText(name);
+	manager.StopDriver(service, name);
 }
+
+void CinstdrvDlg::PrintError(std::wstring error) {
+
+
+	m_edtLog.ReplaceSel((error + L"\r\n").c_str());
+
+}
+
+void CinstdrvDlg::PrintLastError()
+{
+
+	LPVOID lpMsgBuf;
+
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL,
+		GetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+		(LPTSTR)&lpMsgBuf,
+		0,
+		NULL
+	);
+	std::wstring tmpbuf((LPWSTR)lpMsgBuf);
+	tmpbuf += L"\r\n";
+	m_edtLog.ReplaceSel(tmpbuf.c_str());
+	// Free the buffer.
+	LocalFree(lpMsgBuf);
+
+}
+

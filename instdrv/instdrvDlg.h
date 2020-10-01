@@ -49,4 +49,9 @@ public:
 	afx_msg void OnClickedIdbRemove();
 	afx_msg void OnClickedIdbStart();
 	afx_msg void OnClickedIdbStop();
+	void PrintLastError();
+	void PrintError(std::wstring);
+private:
+	SC_HANDLE service = NULL;
+	HANDLE symlink = NULL;
 };

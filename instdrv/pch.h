@@ -9,5 +9,9 @@
 
 // add headers that you want to pre-compile here
 #include "framework.h"
+#include "Windows.h"
+#include "winsvc.h"
+#include <iostream>
+#define WIN32_LEAN_AND_MEAN
 
 #endif //PCH_H
