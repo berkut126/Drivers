@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple3", "simple3\simple3.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple3app", "simple3app\simple3app.vcxproj", "{CE259B79-7F20-42D5-A7C6-680D58C7A731}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "instdrv", "instdrv\instdrv.vcxproj", "{5894BB53-6B7B-466B-94B4-48341769A0B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -107,6 +109,18 @@ Global
 		{CE259B79-7F20-42D5-A7C6-680D58C7A731}.Release|x64.Build.0 = Release|x64
 		{CE259B79-7F20-42D5-A7C6-680D58C7A731}.Release|x86.ActiveCfg = Release|Win32
 		{CE259B79-7F20-42D5-A7C6-680D58C7A731}.Release|x86.Build.0 = Release|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|ARM.ActiveCfg = Debug|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|x64.ActiveCfg = Debug|x64
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|x64.Build.0 = Debug|x64
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|x86.ActiveCfg = Debug|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Debug|x86.Build.0 = Debug|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|ARM.ActiveCfg = Release|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|ARM64.ActiveCfg = Release|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|x64.ActiveCfg = Release|x64
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|x64.Build.0 = Release|x64
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|x86.ActiveCfg = Release|Win32
+		{5894BB53-6B7B-466B-94B4-48341769A0B7}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
