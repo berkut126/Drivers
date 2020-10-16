@@ -1,3 +1,7 @@
+/*
+* This is a personal academic project. Dear PVS-Studio, please check it.
+* PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+*/
 
 // instdrv.cpp : Defines the class behaviors for the application.
 //
@@ -19,15 +23,6 @@ BEGIN_MESSAGE_MAP(CinstdrvApp, CWinApp)
 END_MESSAGE_MAP()
 
 
-// CinstdrvApp construction
-
-CinstdrvApp::CinstdrvApp()
-{
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-}
-
-
 // The one and only CinstdrvApp object
 
 CinstdrvApp theApp;
@@ -38,11 +33,6 @@ CinstdrvApp theApp;
 BOOL CinstdrvApp::InitInstance()
 {
 	CWinApp::InitInstance();
-
-
-	// Create the shell manager, in case the dialog contains
-	// any shell tree view or shell list view controls.
-	CShellManager *pShellManager = new CShellManager;
 
 	// Activate "Windows Native" visual manager for enabling themes in MFC controls
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
@@ -58,7 +48,7 @@ BOOL CinstdrvApp::InitInstance()
 
 	CinstdrvDlg dlg;
 	m_pMainWnd = &dlg;
-	INT_PTR nResponse = dlg.DoModal();
+	const auto nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
 		// TODO: Place code here to handle when the dialog is
@@ -73,12 +63,6 @@ BOOL CinstdrvApp::InitInstance()
 	{
 		TRACE(traceAppMsg, 0, "Warning: dialog creation failed, so application is terminating unexpectedly.\n");
 		TRACE(traceAppMsg, 0, "Warning: if you are using MFC controls on the dialog, you cannot #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS.\n");
-	}
-
-	// Delete the shell manager created above.
-	if (pShellManager != nullptr)
-	{
-		delete pShellManager;
 	}
 
 #if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)

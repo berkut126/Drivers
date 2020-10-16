@@ -1,7 +1,13 @@
+/*
+* This is a personal academic project. Dear PVS-Studio, please check it.
+* PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+*/
 
 // instdrvDlg.cpp : implementation file
 //
 
+// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeStatic
 #include "pch.h"
 #include "framework.h"
 #include "instdrv.h"
@@ -24,9 +30,9 @@ CinstdrvDlg::CinstdrvDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CinstdrvDlg::DoDataExchange(CDataExchange* pDX)
+void CinstdrvDlg::DoDataExchange(CDataExchange* p_dx)
 {
-	CDialogEx::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange(p_dx);
 	//  DDX_Control(pDX, IDB_ADD, m_butAdd);
 	//  DDX_Control(pDX, IDB_CLOSE, m_butClose);
 	//  DDX_Control(pDX, IDB_OPEN, m_butOpen);
@@ -34,22 +40,22 @@ void CinstdrvDlg::DoDataExchange(CDataExchange* pDX)
 	//  DDX_Control(pDX, IDB_REMOVE, m_butRemove);
 	//  DDX_Control(pDX, IDB_START, m_butStart);
 	//  DDX_Control(pDX, IDB_STOP, m_butStop);
-	DDX_Control(pDX, IDC_LOG, m_edtLog);
-	DDX_Control(pDX, IDC_PATH, m_edtPath);
-	DDX_Control(pDX, IDC_SER, m_edtSer);
-	DDX_Control(pDX, IDC_SYM, m_edtSym);
+	DDX_Control(p_dx, IDC_LOG, m_edt_log);
+	DDX_Control(p_dx, IDC_PATH, m_edt_path);
+	DDX_Control(p_dx, IDC_SER, m_edt_ser);
+	DDX_Control(p_dx, IDC_SYM, m_edt_sym);
 }
 
 BEGIN_MESSAGE_MAP(CinstdrvDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDB_ADD, &CinstdrvDlg::OnClickedIdbAdd)
-	ON_BN_CLICKED(IDB_CLOSE, &CinstdrvDlg::OnClickedIdbClose)
-	ON_BN_CLICKED(IDB_OPEN, &CinstdrvDlg::OnClickedIdbOpen)
-	ON_BN_CLICKED(IDB_PATH, &CinstdrvDlg::OnClickedIdbPath)
-	ON_BN_CLICKED(IDB_REMOVE, &CinstdrvDlg::OnClickedIdbRemove)
-	ON_BN_CLICKED(IDB_START, &CinstdrvDlg::OnClickedIdbStart)
-	ON_BN_CLICKED(IDB_STOP, &CinstdrvDlg::OnClickedIdbStop)
+	ON_BN_CLICKED(IDB_ADD, &CinstdrvDlg::on_clicked_idb_add)
+	ON_BN_CLICKED(IDB_CLOSE, &CinstdrvDlg::on_clicked_idb_close)
+	ON_BN_CLICKED(IDB_OPEN, &CinstdrvDlg::on_clicked_idb_open)
+	ON_BN_CLICKED(IDB_PATH, &CinstdrvDlg::on_clicked_idb_path)
+	ON_BN_CLICKED(IDB_REMOVE, &CinstdrvDlg::on_clicked_idb_remove)
+	ON_BN_CLICKED(IDB_START, &CinstdrvDlg::on_clicked_idb_start)
+	ON_BN_CLICKED(IDB_STOP, &CinstdrvDlg::on_clicked_idb_stop)
 END_MESSAGE_MAP()
 
 
@@ -65,6 +71,9 @@ BOOL CinstdrvDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	m_edt_path.SetWindowText(L"C:\\Users\\WDKRemoteUser\\Desktop\\simple3\\simple3.sys");
+	m_edt_ser.SetWindowText(L"Service3");
+	m_edt_sym.SetWindowText(L"\\\\.\\\\Simple3Link");
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -82,12 +91,12 @@ void CinstdrvDlg::OnPaint()
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
-		int cxIcon = GetSystemMetrics(SM_CXICON);
-		int cyIcon = GetSystemMetrics(SM_CYICON);
+		const auto cx_icon = GetSystemMetrics(SM_CXICON);
+		const auto cy_icon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
 		GetClientRect(&rect);
-		int x = (rect.Width() - cxIcon + 1) / 2;
-		int y = (rect.Height() - cyIcon + 1) / 2;
+		const auto x = (rect.Width() - cx_icon + 1) / 2;
+		const auto y = (rect.Height() - cy_icon + 1) / 2;
 
 		// Draw the icon
 		dc.DrawIcon(x, y, m_hIcon);
@@ -107,103 +116,125 @@ HCURSOR CinstdrvDlg::OnQueryDragIcon()
 
 
 
-void CinstdrvDlg::OnClickedIdbAdd()
+void CinstdrvDlg::on_clicked_idb_add()
 {
-	auto manager = CScMgr();
+	c_sc_mgr manager;
 	CString path, name;
-	m_edtPath.GetWindowText(path);
-	m_edtSer.GetWindowText(name);
-	service = manager.InstallDriver(path, name);
-}
-
-
-void CinstdrvDlg::OnClickedIdbClose()
-{
-	if (symlink == NULL)
-		return;
-	auto manager = CScMgr();
-	manager.CloseDevice(symlink);
-}
-
-
-void CinstdrvDlg::OnClickedIdbOpen()
-{
-	if (symlink == NULL)
-		return;
-	auto manager = CScMgr();
-	CString symlinkPath;
-	symlink = manager.OpenDevice(symlinkPath);
-}
-
-
-void CinstdrvDlg::OnClickedIdbPath()
-{
-	CFileDialog opendialog(true);
-	if (opendialog.DoModal() == IDOK) {
-		m_edtPath.SetWindowText(opendialog.GetPathName());
+	m_edt_path.GetWindowText(path);
+	m_edt_ser.GetWindowText(name);
+	if(manager.install_driver(path, name))
+	{
+		print(L"Driver added");
+	}
+	else
+	{
+		print(L"Driver not added");
 	}
 }
 
 
-void CinstdrvDlg::OnClickedIdbRemove()
+void CinstdrvDlg::on_clicked_idb_close()
 {
-	if (service == NULL)
-		// Do nothing
-		return;
-	auto manager = CScMgr();
+	c_sc_mgr manager;
+	CString symlink;
+	m_edt_sym.GetWindowText(symlink);
+	if(manager.close_device(symlink))
+	{
+		print(L"Device closed");
+	}
+	else
+	{
+	print(L"Device not closed");
+	}
+}
+
+
+void CinstdrvDlg::on_clicked_idb_open()
+{
+	c_sc_mgr manager;
+	CString symlinkPath;
+	m_edt_sym.GetWindowText(symlinkPath);
+	if(manager.open_device(symlinkPath))
+	{
+		print(L"Device opened");
+	}
+	else
+	{
+	print(L"Device not opened");
+	}
+}
+
+
+void CinstdrvDlg::on_clicked_idb_path()
+{
+	CFileDialog open_dialog(TRUE);
+	if (open_dialog.DoModal() == IDOK) {
+		m_edt_path.SetWindowText(open_dialog.GetPathName());
+	}
+}
+
+
+void CinstdrvDlg::on_clicked_idb_remove()
+{
+	c_sc_mgr manager;
 	CString name;
-	m_edtSer.GetWindowText(name);
-	manager.DeleteDriver(name);
+	m_edt_ser.GetWindowText(name);
+	if(manager.delete_driver(name))
+	{
+		print(L"Driver removed");
+	}
+	else
+	{
+	print(L"Driver not removed");
+	}
 }
 
 
-void CinstdrvDlg::OnClickedIdbStart()
+void CinstdrvDlg::on_clicked_idb_start()
 {
-	if (service == NULL)
-		return;
-	auto manager = CScMgr();
+	c_sc_mgr manager;
 	CString name;
-	m_edtSer.GetWindowText(name);
-	manager.RunDriver(service, name);
+	m_edt_ser.GetWindowText(name);
+	if(manager.run_driver(name))
+	{
+		print(L"Driver started");
+	}
+	else
+	{
+	print(L"Driver not started");
+	}
 }
 
 
-void CinstdrvDlg::OnClickedIdbStop()
+void CinstdrvDlg::on_clicked_idb_stop()
 {
-	if (service == NULL)
-		return;
-	auto manager = CScMgr();
+	c_sc_mgr manager;
 	CString name;
-	m_edtSer.GetWindowText(name);
-	manager.StopDriver(service, name);
+	m_edt_ser.GetWindowText(name);
+	if(manager.stop_driver(name))
+	{
+		print(L"Driver stopped");
+	}
+	else
+	{
+		print(L"Driver not stopped");
+	}
 }
 
-void CinstdrvDlg::PrintError(std::wstring error) {
+void CinstdrvDlg::print(const std::wstring& message) {
 
 
-	m_edtLog.ReplaceSel((error + L"\r\n").c_str());
+	CString cur_text;
+	m_edt_log.GetWindowText(cur_text);
+	cur_text = cur_text + (message + L"\r\n").c_str();
+	m_edt_log.SetWindowText(cur_text);
 
 }
 
-void CinstdrvDlg::PrintLastError()
+void CinstdrvDlg::print_success(const std::wstring& error)
 {
 
-	LPVOID lpMsgBuf;
-
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR)&lpMsgBuf,
-		0,
-		NULL
-	);
-	std::wstring tmpbuf((LPWSTR)lpMsgBuf);
-	tmpbuf += L"\r\n";
-	m_edtLog.ReplaceSel(tmpbuf.c_str());
-	// Free the buffer.
-	LocalFree(lpMsgBuf);
+	m_edt_log.ReplaceSel((error + L"\r\n").c_str());
 
 }
 

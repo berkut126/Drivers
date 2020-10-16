@@ -18,7 +18,7 @@
 class CinstdrvApp : public CWinApp
 {
 public:
-	CinstdrvApp();
+	CinstdrvApp() = default;
 
 // Overrides
 public:
