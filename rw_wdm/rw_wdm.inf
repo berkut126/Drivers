@@ -1,0 +1,73 @@
+;
+; rw_wdm.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class= Sample
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
+Provider=%ManufacturerName%
+DriverVer=
+CatalogFile=rw_wdm.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+rw_wdm.sys  = 1,,
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%rw_wdm.DeviceDesc%=rw_wdm_Device, Root\rw ; TODO: edit hw-id
+
+[rw_wdm_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+rw_wdm.sys
+
+;-------------- Service installation
+[rw_wdm_Device.NT.Services]
+AddService = rw_wdm,%SPSVCINST_ASSOCSERVICE%, rw_Service_Inst, rw_EventLog_Inst
+
+; -------------- rw driver install sections
+[rw_Service_Inst]
+DisplayName    = %rw_wdm.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\rw_wdm.sys
+
+[rw_EventLog_Inst]
+AddReg = rw_EventLog_AddReg
+
+[rw_EventLog_AddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\rw_wdm.sys"
+;
+; Preceding entry on single line in INF file. Enclosing quotation marks 
+; prevent the semicolon from being interpreted as a comment.
+;
+HKR,,TypesSupported,0x00010001,7
+
+
+[Strings]
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Simple"
+DiskName="rw_wdm Source Disk"
+rw_wdm.SVCDESC = "rw_wdm Service"
+rw_wdm.DeviceDesc = "rw Device"
+SPSVCINST_ASSOCSERVICE= 0x00000002
