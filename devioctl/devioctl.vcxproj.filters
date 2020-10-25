@@ -24,7 +24,20 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="devioctl.cpp">
+    <Text Include="Messages.mc">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Messages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dev_io_ctl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

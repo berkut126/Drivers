@@ -168,7 +168,16 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="devioctl.cpp" />
+    <ClCompile Include="dev_io_ctl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="Messages.mc">
+      <FileType>Document</FileType>
+    </MessageCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Messages.h" />
+    <ClInclude Include="Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
