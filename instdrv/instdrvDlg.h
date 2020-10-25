@@ -6,7 +6,7 @@
 
 
 // CinstdrvDlg dialog
-class CinstdrvDlg : public CDialogEx
+class CinstdrvDlg final : public CDialogEx
 {
 // Construction
 public:
@@ -18,15 +18,10 @@ public:
 #endif
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
-
-
-// Implementation
-protected:
+	void DoDataExchange(CDataExchange* p_dx) override;	// DDX/DDV support
 	HICON m_hIcon;
-
 	// Generated message map functions
-	virtual BOOL OnInitDialog();
+	BOOL OnInitDialog() override;
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
@@ -38,20 +33,17 @@ public:
 //	CButton m_butRemove;
 //	CButton m_butStart;
 //	CButton m_butStop;
-	CEdit m_edtLog;
-	CEdit m_edtPath;
-	CEdit m_edtSer;
-	CEdit m_edtSym;
-	afx_msg void OnClickedIdbAdd();
-	afx_msg void OnClickedIdbClose();
-	afx_msg void OnClickedIdbOpen();
-	afx_msg void OnClickedIdbPath();
-	afx_msg void OnClickedIdbRemove();
-	afx_msg void OnClickedIdbStart();
-	afx_msg void OnClickedIdbStop();
-	void PrintLastError();
-	void PrintError(std::wstring);
-private:
-	SC_HANDLE service = NULL;
-	HANDLE symlink = NULL;
+	CEdit m_edt_log;
+	CEdit m_edt_path;
+	CEdit m_edt_ser;
+	CEdit m_edt_sym;
+	afx_msg void on_clicked_idb_add();
+	afx_msg void on_clicked_idb_close();
+	afx_msg void on_clicked_idb_open();
+	afx_msg void on_clicked_idb_path();
+	afx_msg void on_clicked_idb_remove();
+	afx_msg void on_clicked_idb_start();
+	afx_msg void on_clicked_idb_stop();
+	void print_success(const std::wstring&);
+	void print(const std::wstring&);
 };

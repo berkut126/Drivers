@@ -1,46 +1,67 @@
+/*
+* This is a personal academic project. Dear PVS-Studio, please check it.
+* PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+*/
 #include "pch.h"
 #include "CScMgr.h"
 #include "instdrvDlg.h"
 
-void CScMgr::PrintLastError()
+void c_sc_mgr::print_last_error(const DWORD code)
 {
+	
+	LPVOID lp_msg_buf;
 
-	auto dlg = static_cast<CinstdrvDlg*>(AfxGetApp()->m_pMainWnd);
-	dlg->PrintLastError();
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr,
+		code,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+		reinterpret_cast<LPTSTR>(&lp_msg_buf),
+		0,
+		nullptr
+	);
+	std::wstring temp_buf(static_cast<LPWSTR>(lp_msg_buf));
+	temp_buf += L"\t\r\n";
+	// Free the buffer.
+
+	auto* dlg = dynamic_cast<CinstdrvDlg*>(AfxGetApp()->m_pMainWnd);
+	dlg->print(temp_buf);
+
+	LocalFree(lp_msg_buf);
+	
+}
+
+void c_sc_mgr::print(const std::wstring& message)
+{
+	auto* dlg = dynamic_cast<CinstdrvDlg*>(AfxGetApp()->m_pMainWnd);
+	dlg->print(message);
 
 }
 
-void CScMgr::PrintError(std::wstring error)
+c_sc_mgr::c_sc_mgr()
 {
 
-	auto dlg = static_cast<CinstdrvDlg*>(AfxGetApp()->m_pMainWnd);
-	dlg->PrintError(error);
+	sc_manager_ = OpenSCManager(nullptr, SERVICES_ACTIVE_DATABASE, SC_MANAGER_CREATE_SERVICE);
 
-}
-
-CScMgr::CScMgr()
-{
-
-	SCManager = OpenSCManager(NULL, SERVICES_ACTIVE_DATABASE, SC_MANAGER_CREATE_SERVICE);
-
-	if (SCManager == NULL) {
-		PrintError(L"Failed to open ServiceManager");
-		PrintLastError();
+	if (sc_manager_ == nullptr) {
+		const auto code = GetLastError();
+		print(L"\tFailed to open ServiceManager");
+		print_last_error(code);
 	}
 
 }
 
-CScMgr::~CScMgr()
+c_sc_mgr::~c_sc_mgr()
 {
-	CloseServiceHandle(SCManager);
+	CloseServiceHandle(sc_manager_);
 }
 
-SC_HANDLE CScMgr::InstallDriver(LPCWSTR path, LPCWSTR name)
+BOOL c_sc_mgr::install_driver(LPCWSTR path, LPCWSTR name)
 {
 
-	// Create a service to run thge driver
-	auto service = CreateService(
-		SCManager,
+	// Create a service to run the driver
+	auto* const service = CreateService(
+		sc_manager_,
 		name,
 		name,
 		SERVICE_ALL_ACCESS,
@@ -48,60 +69,92 @@ SC_HANDLE CScMgr::InstallDriver(LPCWSTR path, LPCWSTR name)
 		SERVICE_DEMAND_START,
 		SERVICE_ERROR_NORMAL,
 		path,
-		NULL,
-		NULL,
-		NULL,
-		NULL,
-		NULL
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr
 	);
 
-	if (service == NULL) {
-		PrintError(std::wstring(L"Failed to create service ") + name);
-		PrintLastError();
-		return NULL;
-	}
+	print(L"\tCreating service");
 
-	return service;
-
-}
-
-BOOL CScMgr::DeleteDriver(LPCWSTR name)
-{
-
-	// Open service manager
-	auto service = OpenService(SCManager, name, SERVICE_ALL_ACCESS);
-	if (service == NULL)
-	{
-		PrintError(std::wstring(L"Failed to open service ") + name);
-		PrintLastError();
+	if (service == nullptr) {
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to create service ") + name);
+		print_last_error(code);
 		return FALSE;
 	}
+
+	print(L"\tCreated service");
 	
-	// Delete service
-	if (DeleteService(service) == 0) {
-		PrintError(std::wstring(L"Failed to delete service ") + name);
-		PrintLastError();
-		return FALSE;
-	}
+	CloseServiceHandle(service);
+
+	print(L"\tClosed handle");
 
 	return TRUE;
 
 }
 
-BOOL CScMgr::RunDriver(SC_HANDLE service, LPCWSTR name)
+BOOL c_sc_mgr::delete_driver(LPCWSTR name)
 {
 
-	if (StartService(service, 1, &name) == 0) {
+	// Open service manager
+	auto* const service = OpenService(sc_manager_, name, SERVICE_ALL_ACCESS);
 
-		PrintError(std::wstring(L"Failed to create service ") + name);
-		PrintLastError();
+	print(L"\tOpening service");
+	
+	if (service == nullptr)
+	{
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to open service ") + name);
+		print_last_error(code);
+		return FALSE;
+	}
+
+	print(L"\tDeleting service");
+	
+	// Delete service
+	if (DeleteService(service) == 0) {
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to delete service ") + name);
+		print_last_error(code);
+		return FALSE;
+	}
+
+	print(L"\tClosing handle");
+	
+	CloseServiceHandle(service);
+
+	return TRUE;
+
+}
+
+BOOL c_sc_mgr::run_driver(LPCWSTR name)
+{
+
+	auto* const service = OpenService(sc_manager_, name, SERVICE_ALL_ACCESS);
+
+	print(L"\tOpening service");
+
+	if(service == nullptr)
+	{
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to open service ") + name);
+		print_last_error(code);
+		return FALSE;
+	}
+
+	if (StartService(service, 1, &name) == 0) {
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to run service ") + name);
+		print_last_error(code);
 
 
 		// Delete the service
 		if (DeleteService(service) == 0) {
-
-			PrintError(std::wstring(L"Failed to delete service ") + name);
-			PrintLastError();
+			const auto code = GetLastError();
+			print(std::wstring(L"\tFailed to delete service ") + name);
+			print_last_error(code);
 			return FALSE;
 
 		}
@@ -110,57 +163,67 @@ BOOL CScMgr::RunDriver(SC_HANDLE service, LPCWSTR name)
 
 	}
 
+	CloseServiceHandle(service);
+
 	return TRUE;
 
 }
 
-BOOL CScMgr::StopDriver(SC_HANDLE service, LPCWSTR name)
+BOOL c_sc_mgr::stop_driver(LPCWSTR name)
 {
-
+	auto* const service = OpenService(sc_manager_, name, SERVICE_ALL_ACCESS);
+	
 	SERVICE_STATUS status;
 
 	// Stop service
 	if (ControlService(service, SERVICE_CONTROL_STOP, &status) == 0)
 	{
-		PrintError(std::wstring(L"Failed to stop service: ") + name);
-		PrintLastError();
+		const auto code = GetLastError();
+		print(std::wstring(L"\tFailed to stop service: ") + name);
+		print_last_error(code);
 		return FALSE;
 	}
 
+	CloseServiceHandle(service);
+
 	return TRUE;
 
 }
 
-HANDLE CScMgr::OpenDevice(LPCWSTR symlink)
+BOOL c_sc_mgr::open_device(const LPCWSTR symlink)
 {
 
 	// Open driver device
-	auto driverSymLink = CreateFile(
+	auto* const driver_sym_link = CreateFile(
 		symlink,
 		GENERIC_READ,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL,
+		nullptr,
 		OPEN_EXISTING,
 		0,
-		NULL
+		nullptr
 	);
 
-	if (driverSymLink == INVALID_HANDLE_VALUE) {
-
-		PrintError(L"Failed opening driver symlink");
-		PrintLastError();
-		return NULL;
+	if (driver_sym_link == INVALID_HANDLE_VALUE) {
+		const auto code = GetLastError();
+		print(L"\tFailed opening driver symlink");
+		print_last_error(code);
+		return FALSE;
 
 	}
+
+	CloseHandle(driver_sym_link);
 	
-	return driverSymLink;
+	return TRUE;
 
 }
 
-BOOL CScMgr::CloseDevice(HANDLE driveSymLink)
+BOOL c_sc_mgr::close_device(const LPCWSTR symlink)
 {
 
-	CloseHandle(driveSymLink);
-	return TRUE;
+	return DeleteFile(
+		symlink
+	);
+	
 
 }
