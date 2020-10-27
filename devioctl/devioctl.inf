@@ -1,0 +1,71 @@
+;
+; devioctl.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class= Sample
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
+Provider=%ManufacturerName%
+DriverVer=
+CatalogFile=devioctl.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+devioctl.sys  = 1,,
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%devioctl.DeviceDesc%=devioctl_Device, Root\devioctl ; TODO: edit hw-id
+
+[devioctl_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+devioctl.sys
+
+;-------------- Service installation
+[devioctl_Device.NT.Services]
+AddService = devioctl,%SPSVCINST_ASSOCSERVICE%, devioctl_Service_Inst, devioctl_EventLog_Inst
+
+; -------------- devioctl driver install sections
+[devioctl_Service_Inst]
+DisplayName    = %devioctl.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\devioctl.sys
+
+[devioctl_EventLog_Inst]
+AddReg = devioctl_EventLog_AddReg
+
+[devioctl_EventLog_AddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\devioctl.sys"
+;
+; Preceding entry on single line in INF file. Enclosing quotation marks 
+; prevent the semicolon from being interpreted as a comment.
+;
+HKR,,TypesSupported,0x00010001,7
+
+
+[Strings]
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Simple"
+DiskName="devioctl Source Disk"
+devioctl.SVCDESC = "devioctl Service"
+devioctl.DeviceDesc = "devioctl Device"
+SPSVCINST_ASSOCSERVICE= 0x00000002
