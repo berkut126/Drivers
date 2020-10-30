@@ -155,6 +155,12 @@
   <ItemGroup>
     <ClCompile Include="unifilt.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="Messages.mc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Messages.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
