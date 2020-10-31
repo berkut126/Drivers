@@ -4,8 +4,8 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=System
-ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Class= Sample
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171}
 Provider=%ManufacturerName%
 DriverVer=
 CatalogFile=unifilt.cat
@@ -13,20 +13,59 @@ CatalogFile=unifilt.cat
 [DestinationDirs]
 DefaultDestDir = 12
 
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
-
+unifilt.sys  = 1,,
 
 [Manufacturer]
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
+%unifilt.DeviceDesc%=unifilt_Device, Root\unifilt ; TODO: edit hw-id
+
+[unifilt_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+unifilt.sys
+
+;-------------- Service installation
+[unifilt_Device.NT.Services]
+AddService = unifilt,%SPSVCINST_ASSOCSERVICE%, unifilt_Service_Inst, unifilt_EventLog_Inst
+
+; -------------- unifilt driver install sections
+[unifilt_Service_Inst]
+DisplayName    = %unifilt.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\unifilt.sys
+
+[unifilt_EventLog_Inst]
+AddReg = unifilt_EventLog_AddReg
+
+[unifilt_EventLog_AddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\unifilt.sys"
+;
+; Preceding entry on single line in INF file. Enclosing quotation marks 
+; prevent the semicolon from being interpreted as a comment.
+;
+HKR,,TypesSupported,0x00010001,7
 
 
 [Strings]
 ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
-ClassName=""
+ClassName="Simple"
 DiskName="unifilt Source Disk"
+unifilt.SVCDESC = "unifilt Service"
+unifilt.DeviceDesc = "unifilt Device"
+SPSVCINST_ASSOCSERVICE= 0x00000002
