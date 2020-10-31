@@ -36,19 +36,25 @@ Entered OnClose
 .
 MessageID    = 7
 Severity     = Informational
-SymbolicName = MSG_READ
+SymbolicName = MSG_MOCKED
 Language     = English
-Entered OnRead
+Entered mocked dispatch
 .
 MessageID    = 8
-Severity     = Informational
-SymbolicName = MSG_WRITE
-Language     = English
-Entered OnWrite
-.
-MessageID    = 9
 Severity     = Informational
 SymbolicName = MSG_CTL
 Language     = English
 Entered OnDeviceControl
+.
+MessageID    = 9
+Severity     = Informational
+SymbolicName = MSG_MOCKED_CREATE
+Language     = English
+Creating mocked device
+.
+MessageID    = 10
+Severity     = Informational
+SymbolicName = MSG_MOCKED_DELETE
+Language     = English
+Deleting mocked device
 .

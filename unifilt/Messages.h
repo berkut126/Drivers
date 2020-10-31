@@ -89,22 +89,13 @@
 #define MSG_CLOSE                        0x40000006L
 
 //
-// MessageId: MSG_READ
+// MessageId: MSG_MOCKED
 //
 // MessageText:
 //
-// Entered OnRead
+// Entered mocked dispatch
 //
-#define MSG_READ                         0x40000007L
-
-//
-// MessageId: MSG_WRITE
-//
-// MessageText:
-//
-// Entered OnWrite
-//
-#define MSG_WRITE                        0x40000008L
+#define MSG_MOCKED                       0x40000007L
 
 //
 // MessageId: MSG_CTL
@@ -113,5 +104,23 @@
 //
 // Entered OnDeviceControl
 //
-#define MSG_CTL                          0x40000009L
+#define MSG_CTL                          0x40000008L
+
+//
+// MessageId: MSG_MOCKED_CREATE
+//
+// MessageText:
+//
+// Creating mocked device
+//
+#define MSG_MOCKED_CREATE                0x40000009L
+
+//
+// MessageId: MSG_MOCKED_DELETE
+//
+// MessageText:
+//
+// Deleting mocked device
+//
+#define MSG_MOCKED_DELETE                0x4000000AL
 
