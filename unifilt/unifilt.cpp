@@ -57,7 +57,7 @@ NTSTATUS DriverEntry(
 	write_event(MSG_DRIVER_ENTRY, DriverObject, nullptr);
 
 	// Status variable
-	const auto status = device_init(&unifilt_dev, DriverObject, unifilt_device_object, &buffer);
+	const auto status = device_init(&unifilt_dev, DriverObject, &unifilt_device_object, &buffer);
 	if (status != STATUS_SUCCESS)
 	{
 		return status;
@@ -103,6 +103,7 @@ NTSTATUS filter_drv_dispatch(
 {
 
 	DEBUG_PRINT(("unifilt: Entering universal dispatch\n"));
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: device = %p, unifilt_device_object = %p\n", device, unifilt_device_object);
 
 	if (device == unifilt_device_object)
 	{
@@ -126,7 +127,7 @@ NTSTATUS mocked_dispatch(
 	write_event(MSG_MOCKED, device, irp);
 	auto status = STATUS_SUCCESS;
 
-	auto* const stack = IoGetCurrentIrpStackLocation(irp);
+	const auto* const stack = IoGetCurrentIrpStackLocation(irp);
 
 	switch(stack->MajorFunction)
 	{
@@ -151,11 +152,13 @@ NTSTATUS mocked_dispatch(
 			break;
 
 		default:
-			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "Filtered: MajorFunction: %d\n", stack->MajorFunction);
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "Filtered: MajorFunction: %u\n", stack->MajorFunction);
 	}
 
-	auto* const next_stack = IoGetNextIrpStackLocation(irp);
-	*next_stack = *stack;
+	//auto* const next_stack = IoGetNextIrpStackLocation(irp);
+	//*next_stack = *stack;
+	irp->CurrentLocation++;
+	irp->Tail.Overlay.CurrentStackLocation++;
 	IoSetCompletionRoutine(irp, filter_device_dispatch_complete, device, TRUE, TRUE, TRUE);
 	status = IoCallDriver(buffer.target_device_object, irp);
 
@@ -175,6 +178,8 @@ NTSTATUS gui_dispatch(
 
 	const auto* const stack = IoGetCurrentIrpStackLocation(irp);
 
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: function = %u, ctl_code = %u\n", stack->Parameters.DeviceIoControl.IoControlCode, unifilt_my_create);
+
 	// Create or delete device should be passed via DeviceIoControl
 	if(stack->MajorFunction == IRP_MJ_DEVICE_CONTROL)
 	{
@@ -187,15 +192,17 @@ NTSTATUS gui_dispatch(
 
 			auto* input = irp->AssociatedIrp.SystemBuffer;
 
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: got length: %u\n", stack->Parameters.DeviceIoControl.InputBufferLength);
+
 			const auto length = stack->Parameters.DeviceIoControl.InputBufferLength;
 
+			const auto* const data = static_cast<PCWSTR>(input);
+
 			UNICODE_STRING name;
+			
+			RtlInitUnicodeString(&name, data);
 
-			auto* temp = static_cast<unsigned short*>(ExAllocatePoolWithTag(NonPagedPool, length, 's6pt'));  // NOLINT(clang-diagnostic-four-char-constants)
-
-			RtlCopyMemory(input, temp, length);
-
-			RtlInitUnicodeString(&name, temp);
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %wZ\n", &name);
 
 			FILE_OBJECT* object;
 
@@ -203,26 +210,24 @@ NTSTATUS gui_dispatch(
 
 			status = IoGetDeviceObjectPointer(&name, FILE_ALL_ACCESS, &object, &device_to_attach_to);
 
+			RtlFreeUnicodeString(&name);
+
 			if(status != STATUS_SUCCESS)
 			{
 
 				DEBUG_PRINT(("unifilt: Failed to get device pointer\n"));
-				ExFreePoolWithTag(temp, 's6pt'); // NOLINT(clang-diagnostic-four-char-constants)
-				RtlFreeUnicodeString(&name);
 				return status;
 				
 			}
 
 			DEVICE_OBJECT* new_device;
 			
-			status = IoCreateDevice(device->DriverObject, sizeof(device_to_attach_to->DeviceExtension), &name, device_to_attach_to->DeviceType, device_to_attach_to->Characteristics, FALSE, &new_device);
-
+			status = IoCreateDevice(device->DriverObject, sizeof(device_to_attach_to->DeviceExtension), nullptr, device_to_attach_to->DeviceType, device_to_attach_to->Characteristics, FALSE, &new_device);
 			if (status != STATUS_SUCCESS)
 			{
 
 				DEBUG_PRINT(("unifilt: Failed to create filtered device\n"));
-				ExFreePoolWithTag(temp, 's6pt'); // NOLINT(clang-diagnostic-four-char-constants)
-				RtlFreeUnicodeString(&name);
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %d\n", status);
 				return status;
 
 			}
@@ -230,25 +235,18 @@ NTSTATUS gui_dispatch(
 			new_device->Flags |= get_io_flag(device_to_attach_to);
 			new_device->Flags &= ~DO_DEVICE_INITIALIZING;
 
-			DEVICE_OBJECT* saved_device;
-
-			status = IoAttachDevice(device_to_attach_to, &name, &saved_device);
+			auto* saved_device = IoAttachDeviceToDeviceStack(new_device, device_to_attach_to);
 			
-			if (status != STATUS_SUCCESS)
+			if (!saved_device)
 			{
 
 				DEBUG_PRINT(("unifilt: Failed to attach device\n"));
-				ExFreePoolWithTag(temp, 's6pt'); // NOLINT(clang-diagnostic-four-char-constants)
-				RtlFreeUnicodeString(&name);
 				return status;
 
 			}
 
 			buffer.target_device_object = saved_device;
 			buffer.file_object = object;
-			
-			ExFreePoolWithTag(temp, 's6pt'); // NOLINT(clang-diagnostic-four-char-constants)
-			RtlFreeUnicodeString(&name);
 
 			DEBUG_PRINT(("unifilt: Created mocked device\n"));
 			return status;
@@ -285,7 +283,7 @@ NTSTATUS gui_dispatch(
 	
 }
 
-NTSTATUS filter_device_dispatch_complete([[maybe_unused]] PDEVICE_OBJECT device_object, PIRP irp, PVOID context)
+NTSTATUS filter_device_dispatch_complete([[maybe_unused]] PDEVICE_OBJECT device_object, const PIRP irp, [[maybe_unused]] PVOID context)
 {
 
 	if (irp->PendingReturned)

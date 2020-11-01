@@ -33,7 +33,7 @@ struct device
 };
 
 constexpr int file_device_unifilt = 0x00008301;
-constexpr unsigned int unifilt_my_create = CTL_CODE(file_device_unifilt, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS)   ;
+constexpr unsigned int unifilt_my_create = CTL_CODE(file_device_unifilt, 0x800, METHOD_BUFFERED, FILE_ANY_ACCESS);
 constexpr unsigned int unifilt_my_delete = CTL_CODE(file_device_unifilt, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS);
 
 BOOLEAN write_event(IN const NTSTATUS error_code, IN const PVOID io_object, IN const PIRP irp) noexcept {
@@ -82,7 +82,7 @@ inline unsigned long get_io_flag(const DEVICE_OBJECT* const device) noexcept
 	
 }
 
-NTSTATUS device_init(device const* device, const PDRIVER_OBJECT driver_object, PDEVICE_OBJECT device_object, device_extension* buffer) noexcept
+NTSTATUS device_init(device const* device, const PDRIVER_OBJECT driver_object, PDEVICE_OBJECT *device_object, device_extension* buffer) noexcept
 {
 
 	auto status = STATUS_SUCCESS;
@@ -107,7 +107,7 @@ NTSTATUS device_init(device const* device, const PDRIVER_OBJECT driver_object, P
 		device->type,
 		device->characteristics,
 		device->exclusiveness,
-		&device_object
+		device_object
 	);
 
 	write_event(device->init, driver_object, nullptr);
@@ -123,15 +123,15 @@ NTSTATUS device_init(device const* device, const PDRIVER_OBJECT driver_object, P
 
 	write_event(device->success, driver_object, nullptr);
 
-	device_object->Flags |= device->flag;
+	(*device_object)->Flags |= device->flag;
 
-	device_object->DeviceExtension = ExAllocatePoolWithTag(NonPagedPool, buffer_size, device->tag);
+	(*device_object)->DeviceExtension = ExAllocatePoolWithTag(NonPagedPool, buffer_size, device->tag);
 
 	RtlZeroMemory(
-		device_object->DeviceExtension,
+		(*device_object)->DeviceExtension,
 		buffer_size);
 
-	buffer = static_cast<device_extension*>(device_object->DeviceExtension);
+	buffer = static_cast<device_extension*>((*device_object)->DeviceExtension);
 
 	// Create symbolic link
 	status = IoCreateSymbolicLink(&symbolic_name, &dev_name);
@@ -139,7 +139,7 @@ NTSTATUS device_init(device const* device, const PDRIVER_OBJECT driver_object, P
 	// Delete device if link init failed
 	if (status != STATUS_SUCCESS) {
 
-		IoDeleteDevice(device_object);
+		IoDeleteDevice(*device_object);
 
 		DEBUG_PRINT(("unifilt: Exiting DriverEntry\n"));
 
