@@ -95,5 +95,14 @@ namespace instdrv_sharp
                 textBox1.Text = openFileDialog1.FileName;
             }
         }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            ScManager.PrintDelegate printDelegate = Print;
+            var outBuf = new byte[8];
+            var manager = new ScManager(printDelegate);
+            manager.SendCodes(textBox3.Text, ref outBuf);
+            Print(outBuf[0].ToString("X") + outBuf[1].ToString("X") + outBuf[2].ToString("X") + outBuf[3].ToString("X"));
+        }
     }
 }

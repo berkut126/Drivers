@@ -15,8 +15,15 @@ namespace instdrv_sharp
     public class ScManager
     {
 
+        private static uint CTL_CODE(uint deviceType, uint function, uint method, uint access)
+        {
+            return ((deviceType) << 16) | ((access) << 14) | ((function) << 2) | (method);
+        }
+
         [DllImport("Advapi32.dll", SetLastError = true)]
-        private static extern IntPtr OpenSCManagerW(string lpMachineName, [MarshalAs(UnmanagedType.LPWStr)] string lpDatabaseName, uint access);
+        private static extern IntPtr OpenSCManagerW(string lpMachineName,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpDatabaseName, uint access);
+
         [DllImport("Advapi32.dll", SetLastError = true)]
         private static extern IntPtr CreateServiceW(IntPtr hScManager,
             [MarshalAs(UnmanagedType.LPWStr)] string lpServiceName,
@@ -44,6 +51,7 @@ namespace instdrv_sharp
             [MarshalAs(UnmanagedType.LPWStr)] string lpServiceName,
             uint dwDesiredAccess
         );
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess,
             uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition,
@@ -53,6 +61,18 @@ namespace instdrv_sharp
         private static extern bool DeleteFile(
             [MarshalAs(UnmanagedType.LPWStr)] string lpFileName
         );
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern bool DeviceIoControl(
+            SafeFileHandle hDevice,
+            uint dwIoControlCode,
+            IntPtr lpInBuffer,
+            uint nInBufferSize,
+            IntPtr lpOutBuffer,
+            uint nOutBufferSize,
+            out uint lpBytesReturned,
+            IntPtr lpOverlapped);
+
 
         private readonly IntPtr _scManager;
 
@@ -69,11 +89,9 @@ namespace instdrv_sharp
         {
             _printDelegate = handler;
             _scManager = OpenSCManagerW(null, "ServicesActive", 2);
-            if (_scManager == IntPtr.Zero)
-            {
-                var error = new Win32Exception();
-                Print(error.Message);
-            }
+            if (_scManager != IntPtr.Zero) return;
+            var error = new Win32Exception();
+            Print(error.Message);
         }
 
         ~ScManager()
@@ -91,6 +109,7 @@ namespace instdrv_sharp
                 Print(error.Message);
                 return false;
             }
+
             Print($"Created service {name}.");
             CloseServiceHandle(service);
             return true;
@@ -152,7 +171,7 @@ namespace instdrv_sharp
                 Print(e.Message);
                 return false;
             }
-            
+
         }
 
         public bool StopService(string name)
@@ -188,7 +207,7 @@ namespace instdrv_sharp
                     symlink,
                     0x40000000 | 0x80000000,
                     0,
-                    IntPtr.Zero, 
+                    IntPtr.Zero,
                     3,
                     0,
                     IntPtr.Zero
@@ -199,6 +218,7 @@ namespace instdrv_sharp
                     Print(error.Message);
                     return false;
                 }
+
                 Print($"{symlink} opened");
                 return true;
             }
@@ -216,14 +236,15 @@ namespace instdrv_sharp
             {
                 handle.Dispose();
             }
+
             DeleteFile(file);
         }
 
         public void CloseDevice(ref SafeFileHandle handle, string file)
         {
-            
+
             handle.Dispose();
-            
+
             DeleteFile(file);
 
         }
@@ -248,6 +269,7 @@ namespace instdrv_sharp
                     Print(error.Message);
                     return false;
                 }
+
                 Print(file.IsInvalid.ToString());
                 var fileStream = new FileStream(file, FileAccess.Read);
                 Print("Writing data.");
@@ -284,6 +306,7 @@ namespace instdrv_sharp
                     Print(error.Message);
                     return false;
                 }
+
                 Print(file.IsInvalid.ToString());
                 var fileStream = new FileStream(file, FileAccess.Write);
                 Print("Writing data.");
@@ -291,6 +314,59 @@ namespace instdrv_sharp
                 Print("Data written.");
                 fileStream.Dispose();
                 file.Dispose();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Print(e.Message);
+                return false;
+            }
+        }
+
+        public bool SendCodes(string symlink, ref byte[] outBuf)
+        {
+            try
+            {
+                var file = CreateFile(
+                    symlink,
+                    0x40000000,
+                    0,
+                    IntPtr.Zero,
+                    3,
+                    0,
+                    IntPtr.Zero
+                );
+                if (file.IsInvalid)
+                {
+                    file.Dispose();
+                    var error = new Win32Exception();
+                    Print(error.Message);
+                    return false;
+                }
+                var inBuf = new byte[8];
+                var outData = Marshal.AllocHGlobal(Marshal.SizeOf(outBuf[0]) * outBuf.Length);
+                var inData = Marshal.AllocHGlobal(Marshal.SizeOf(inBuf[0]) * 8);
+                Print("Sending codes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x800, 0, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out var length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x801, 1, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x802, 2, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x803, 3, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x804, 0, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x805, 1, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x806, 2, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                DeviceIoControl(file, CTL_CODE(0x00008301, 0x807, 3, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
+                Print($"Read {length} bytes.");
+                Print("Codes sent.");
+                Marshal.Copy(outData, outBuf, 0, outBuf.Length);
+                Marshal.FreeHGlobal(outData);
+                Marshal.FreeHGlobal(inData);
                 return true;
             }
             catch (Exception e)
