@@ -310,6 +310,11 @@ NTSTATUS on_ctl(
 		default:
 			return STATUS_FAIL_CHECK;
 	}
+	
+	IoCompleteRequest(
+		irp,
+		IO_NO_INCREMENT
+	);
 
 	return STATUS_SUCCESS;
 	
