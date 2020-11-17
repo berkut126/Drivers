@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 
 namespace instdrv_sharp
@@ -14,11 +15,6 @@ namespace instdrv_sharp
 
     public class ScManager
     {
-
-        private static uint CTL_CODE(uint deviceType, uint function, uint method, uint access)
-        {
-            return ((deviceType) << 16) | ((access) << 14) | ((function) << 2) | (method);
-        }
 
         [DllImport("Advapi32.dll", SetLastError = true)]
         private static extern IntPtr OpenSCManagerW(string lpMachineName,
@@ -66,7 +62,7 @@ namespace instdrv_sharp
         private static extern bool DeviceIoControl(
             SafeFileHandle hDevice,
             uint dwIoControlCode,
-            IntPtr lpInBuffer,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpInBuffer,
             uint nInBufferSize,
             IntPtr lpOutBuffer,
             uint nOutBufferSize,
@@ -323,7 +319,7 @@ namespace instdrv_sharp
             }
         }
 
-        public bool SendCodes(string symlink, ref byte[] outBuf)
+        public bool SendCodes(string symlink, uint code, ref byte[] outBuf, in string inData)
         {
             try
             {
@@ -343,30 +339,15 @@ namespace instdrv_sharp
                     Print(error.Message);
                     return false;
                 }
-                var inBuf = new byte[8];
+
                 var outData = Marshal.AllocHGlobal(Marshal.SizeOf(outBuf[0]) * outBuf.Length);
-                var inData = Marshal.AllocHGlobal(Marshal.SizeOf(inBuf[0]) * 8);
-                Print("Sending codes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x800, 0, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out var length, IntPtr.Zero);
+
+                Print("Sending code.");
+                DeviceIoControl(file, code, inData, (uint)inData.Length * 2 + 2, outData, (uint)outBuf.Length, out var length, IntPtr.Zero);
                 Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x801, 1, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x802, 2, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x803, 3, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x804, 0, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x805, 1, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x806, 2, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                DeviceIoControl(file, CTL_CODE(0x00008301, 0x807, 3, 0), outData, (uint)outBuf.Length, inData, (uint)inBuf.Length, out length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
-                Print("Codes sent.");
+                Print("Code sent.");
                 Marshal.Copy(outData, outBuf, 0, outBuf.Length);
                 Marshal.FreeHGlobal(outData);
-                Marshal.FreeHGlobal(inData);
                 return true;
             }
             catch (Exception e)
