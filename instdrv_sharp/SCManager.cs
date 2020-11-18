@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
-using System.Text;
 using Microsoft.Win32.SafeHandles;
 
 namespace instdrv_sharp
@@ -66,7 +65,7 @@ namespace instdrv_sharp
             uint nInBufferSize,
             IntPtr lpOutBuffer,
             uint nOutBufferSize,
-            out uint lpBytesReturned,
+            out int lpBytesReturned,
             IntPtr lpOverlapped);
 
 
@@ -159,6 +158,8 @@ namespace instdrv_sharp
 
                 Print($"Service {name} started.");
 
+                service.Dispose();
+
                 return true;
 
             }
@@ -183,6 +184,8 @@ namespace instdrv_sharp
                 service.Stop();
 
                 Print($"Service {name} stopped.");
+
+                service.Dispose();
 
                 return true;
 
@@ -344,7 +347,7 @@ namespace instdrv_sharp
 
                 Print("Sending code.");
                 DeviceIoControl(file, code, inData, (uint)inData.Length * 2 + 2, outData, (uint)outBuf.Length, out var length, IntPtr.Zero);
-                Print($"Read {length} bytes.");
+                Print($"Read {length % 16} bytes.");
                 Print("Code sent.");
                 Marshal.Copy(outData, outBuf, 0, outBuf.Length);
                 Marshal.FreeHGlobal(outData);

@@ -13,6 +13,7 @@
 struct device_extension
 {
 	PDEVICE_OBJECT target_device_object;
+	IO_REMOVE_LOCK lock;
 	PFILE_OBJECT file_object;
 };
 
@@ -74,6 +75,14 @@ inline unsigned long get_io_flag(const DEVICE_OBJECT* const device) noexcept
 	else if(device->Flags & DO_DIRECT_IO)
 	{
 		return DO_DIRECT_IO;
+	}
+	else if(device->Flags & DO_POWER_PAGABLE)
+	{
+		return DO_POWER_PAGABLE;
+	}
+	else if (device->Flags & DO_POWER_INRUSH)
+	{
+		return DO_POWER_INRUSH;
 	}
 	else
 	{

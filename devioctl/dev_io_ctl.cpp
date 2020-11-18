@@ -310,6 +310,8 @@ NTSTATUS on_ctl(
 		default:
 			return STATUS_FAIL_CHECK;
 	}
+
+	irp->IoStatus.Status = STATUS_SUCCESS;
 	
 	IoCompleteRequest(
 		irp,

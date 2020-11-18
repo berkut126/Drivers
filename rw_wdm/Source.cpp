@@ -524,13 +524,13 @@ NTSTATUS write_buffered(IN const PDEVICE_OBJECT device_object, IN const PIRP irp
 
 	irp->IoStatus.Information = length;
 
-	DEBUG_PRINT(("simple4: exiting buffered read\n"));
+	DEBUG_PRINT(("simple4: exiting buffered write\n"));
 	return STATUS_SUCCESS;
 }
 NTSTATUS read_direct(IN const PDEVICE_OBJECT device_object, IN const PIRP irp, [[maybe_unused]] const PIO_STACK_LOCATION stack) noexcept
 {
 
-	DEBUG_PRINT(("simple4: entering buffered read\n"));
+	DEBUG_PRINT(("simple4: entering direct read\n"));
 	write_event(MSG_DIRECT_READ, device_object, irp);
 
 	auto* device_extension_object = static_cast<device_extension*>(device_object->DeviceExtension);
@@ -570,7 +570,7 @@ NTSTATUS read_direct(IN const PDEVICE_OBJECT device_object, IN const PIRP irp, [
 
 	irp->IoStatus.Information = length;
 
-	DEBUG_PRINT(("simple4: exiting buffered read\n"));
+	DEBUG_PRINT(("simple4: exiting direct read\n"));
 	return STATUS_SUCCESS;
 
 }
@@ -578,7 +578,7 @@ NTSTATUS read_direct(IN const PDEVICE_OBJECT device_object, IN const PIRP irp, [
 NTSTATUS write_direct(IN const PDEVICE_OBJECT device_object, IN const PIRP irp, [[maybe_unused]] const PIO_STACK_LOCATION stack) noexcept
 {
 
-	DEBUG_PRINT(("simple4: entering buffered write\n"));
+	DEBUG_PRINT(("simple4: entering direct write\n"));
 	write_event(MSG_DIRECT_WRITE, device_object, irp);
 
 	auto* device_extension_object = static_cast<device_extension*>(device_object->DeviceExtension);
@@ -621,7 +621,7 @@ NTSTATUS write_direct(IN const PDEVICE_OBJECT device_object, IN const PIRP irp, 
 
 	irp->IoStatus.Information = length;
 
-	DEBUG_PRINT(("simple4: exiting buffered read\n"));
+	DEBUG_PRINT(("simple4: exiting direct write\n"));
 	return STATUS_SUCCESS;
 }
 

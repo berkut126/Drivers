@@ -78,6 +78,22 @@ NTSTATUS DriverEntry(
 
 VOID on_drv_unload(PDRIVER_OBJECT DriverObject) {
 
+	if (buffer.target_device_object != nullptr) {
+
+		ObDereferenceObject(buffer.file_object);
+
+		IoDetachDevice(buffer.target_device_object);
+
+		IoAcquireRemoveLock(&buffer.lock, nullptr);
+		IoReleaseRemoveLockAndWait(&buffer.lock, nullptr);
+
+		IoDeleteDevice(buffer.target_device_object);
+
+		buffer.file_object = nullptr;
+		buffer.target_device_object = nullptr;
+
+	}
+
 	DEBUG_PRINT(("unifilt: Entering OnDrvUnload\n"));
 
 	// Symbolic name
@@ -157,6 +173,8 @@ NTSTATUS mocked_dispatch(
 
 	//auto* const next_stack = IoGetNextIrpStackLocation(irp);
 	//*next_stack = *stack;
+	IoAcquireRemoveLock(&buffer.lock, nullptr);
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "Filtered: StackSize: %d, irp->CurrentLocation: %d, StackSize: %d\n", device->StackSize, irp->CurrentLocation, buffer.target_device_object->StackSize);
 	irp->CurrentLocation++;
 	irp->Tail.Overlay.CurrentStackLocation++;
 	IoSetCompletionRoutine(irp, filter_device_dispatch_complete, device, TRUE, TRUE, TRUE);
@@ -187,69 +205,75 @@ NTSTATUS gui_dispatch(
 		if(stack->Parameters.DeviceIoControl.IoControlCode == unifilt_my_create)
 		{
 
-			DEBUG_PRINT(("unifilt: Creating device\n"));
-			write_event(MSG_MOCKED_CREATE, device, irp);
+			if (buffer.target_device_object == nullptr) {
 
-			auto* input = irp->AssociatedIrp.SystemBuffer;
+				IoInitializeRemoveLock(&buffer.lock, 0, 0, 0);
 
-			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: got length: %u\n", stack->Parameters.DeviceIoControl.InputBufferLength);
+				DEBUG_PRINT(("unifilt: Creating device\n"));
+				write_event(MSG_MOCKED_CREATE, device, irp);
 
-			const auto length = stack->Parameters.DeviceIoControl.InputBufferLength;
+				auto* input = irp->AssociatedIrp.SystemBuffer;
 
-			const auto* const data = static_cast<PCWSTR>(input);
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: got length: %u\n", stack->Parameters.DeviceIoControl.InputBufferLength);
 
-			UNICODE_STRING name;
-			
-			RtlInitUnicodeString(&name, data);
+				const auto length = stack->Parameters.DeviceIoControl.InputBufferLength;
 
-			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %wZ\n", &name);
+				const auto* const data = static_cast<PCWSTR>(input);
 
-			FILE_OBJECT* object;
+				UNICODE_STRING name;
 
-			DEVICE_OBJECT* device_to_attach_to;
+				RtlInitUnicodeString(&name, data);
 
-			status = IoGetDeviceObjectPointer(&name, FILE_ALL_ACCESS, &object, &device_to_attach_to);
+				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %wZ\n", &name);
 
-			RtlFreeUnicodeString(&name);
+				FILE_OBJECT* object;
 
-			if(status != STATUS_SUCCESS)
-			{
+				DEVICE_OBJECT* device_to_attach_to;
 
-				DEBUG_PRINT(("unifilt: Failed to get device pointer\n"));
+				status = IoGetDeviceObjectPointer(&name, FILE_ALL_ACCESS, &object, &device_to_attach_to);
+
+				RtlFreeUnicodeString(&name);
+
+				if (status != STATUS_SUCCESS)
+				{
+
+					DEBUG_PRINT(("unifilt: Failed to get device pointer\n"));
+					return status;
+
+				}
+
+				DEVICE_OBJECT* new_device;
+
+				status = IoCreateDevice(device->DriverObject, sizeof(device_to_attach_to->DeviceExtension), nullptr, device_to_attach_to->DeviceType, device_to_attach_to->Characteristics, FALSE, &new_device);
+				if (status != STATUS_SUCCESS)
+				{
+
+					DEBUG_PRINT(("unifilt: Failed to create filtered device\n"));
+					DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %d\n", status);
+					return status;
+
+				}
+
+				new_device->Flags |= get_io_flag(device_to_attach_to);
+				new_device->Flags &= ~DO_DEVICE_INITIALIZING;
+
+				auto* saved_device = IoAttachDeviceToDeviceStack(new_device, device_to_attach_to);
+
+				if (!saved_device)
+				{
+
+					DEBUG_PRINT(("unifilt: Failed to attach device\n"));
+					return status;
+
+				}
+
+				buffer.target_device_object = saved_device;
+				buffer.file_object = object;
+
+				DEBUG_PRINT(("unifilt: Created mocked device\n"));
 				return status;
-				
-			}
-
-			DEVICE_OBJECT* new_device;
-			
-			status = IoCreateDevice(device->DriverObject, sizeof(device_to_attach_to->DeviceExtension), nullptr, device_to_attach_to->DeviceType, device_to_attach_to->Characteristics, FALSE, &new_device);
-			if (status != STATUS_SUCCESS)
-			{
-
-				DEBUG_PRINT(("unifilt: Failed to create filtered device\n"));
-				DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "unifilt: name = %d\n", status);
-				return status;
 
 			}
-
-			new_device->Flags |= get_io_flag(device_to_attach_to);
-			new_device->Flags &= ~DO_DEVICE_INITIALIZING;
-
-			auto* saved_device = IoAttachDeviceToDeviceStack(new_device, device_to_attach_to);
-			
-			if (!saved_device)
-			{
-
-				DEBUG_PRINT(("unifilt: Failed to attach device\n"));
-				return status;
-
-			}
-
-			buffer.target_device_object = saved_device;
-			buffer.file_object = object;
-
-			DEBUG_PRINT(("unifilt: Created mocked device\n"));
-			return status;
 			
 		}
 		else if(stack->Parameters.DeviceIoControl.IoControlCode == unifilt_my_delete)
@@ -258,14 +282,21 @@ NTSTATUS gui_dispatch(
 			DEBUG_PRINT(("unifilt: Deleting device\n"));
 			write_event(MSG_MOCKED_DELETE, device, irp);
 
-			ObDereferenceObject(buffer.file_object);
+			if (buffer.target_device_object != nullptr) {
 
-			IoDetachDevice(buffer.target_device_object);
+				ObDereferenceObject(buffer.file_object);
 
-			IoDeleteDevice(buffer.target_device_object);
+				IoDetachDevice(buffer.target_device_object);
 
-			buffer.file_object = nullptr;
-			buffer.target_device_object = nullptr;
+				IoAcquireRemoveLock(&buffer.lock, nullptr);
+				IoReleaseRemoveLockAndWait(&buffer.lock, nullptr);
+				
+				IoDeleteDevice(buffer.target_device_object);
+
+				buffer.file_object = nullptr;
+				buffer.target_device_object = nullptr;
+
+			}
 
 			DEBUG_PRINT(("unifilt: Deleted device\n"));
 			return STATUS_SUCCESS;
@@ -290,6 +321,9 @@ NTSTATUS filter_device_dispatch_complete([[maybe_unused]] PDEVICE_OBJECT device_
 	{
 		IoMarkIrpPending(irp);
 	}
+
+	IoReleaseRemoveLock(&buffer.lock, nullptr);
+	
 	return STATUS_SUCCESS;
 	
 }

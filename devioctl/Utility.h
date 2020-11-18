@@ -397,6 +397,8 @@ NTSTATUS ctl_in_direct(IN const PIRP irp, IN const PIO_STACK_LOCATION stack) noe
 	auto* out_buffer = MmGetSystemAddressForMdl(irp->MdlAddress);
 	const auto out_length = stack->Parameters.DeviceIoControl.OutputBufferLength;
 
+	irp->IoStatus.Information = out_length;
+
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "IOCTL.SYS:  InB=%08lx len=%lx, OutB=%08lx, len=%lx\n", reinterpret_cast<ULONG>(in_buffer), in_length, reinterpret_cast<ULONG>(out_buffer), out_length);
 
 	return STATUS_SUCCESS;
@@ -410,6 +412,8 @@ NTSTATUS ctl_out_direct(IN const PIRP irp, IN const PIO_STACK_LOCATION stack) no
 	const auto in_length = stack->Parameters.DeviceIoControl.InputBufferLength;
 	auto* out_buffer = irp->AssociatedIrp.SystemBuffer;
 	const auto out_length = stack->Parameters.DeviceIoControl.OutputBufferLength;
+
+	irp->IoStatus.Information = out_length;
 
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "IOCTL.SYS:  InB=%08lx len=%lx, OutB=%08lx, len=%lx\n", reinterpret_cast<ULONG>(in_buffer), in_length, reinterpret_cast<ULONG>(out_buffer), out_length);
 
@@ -425,6 +429,8 @@ NTSTATUS ctl_buffered(IN const PIRP irp, IN const PIO_STACK_LOCATION stack) noex
 	auto* out_buffer = irp->AssociatedIrp.SystemBuffer;
 	const auto out_length = stack->Parameters.DeviceIoControl.OutputBufferLength;
 
+	irp->IoStatus.Information = out_length;
+	
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "IOCTL.SYS:  InB=%08lx len=%lx, OutB=%08lx, len=%lx\n", reinterpret_cast<ULONG>(in_buffer), in_length, reinterpret_cast<ULONG>(out_buffer), out_length);
 
 	return STATUS_SUCCESS;
@@ -438,6 +444,8 @@ NTSTATUS ctl_neither(IN const PIRP irp, IN const PIO_STACK_LOCATION stack) noexc
 	const auto in_length = stack->Parameters.DeviceIoControl.InputBufferLength;
 	auto* out_buffer = irp->UserBuffer;
 	const auto out_length = stack->Parameters.DeviceIoControl.OutputBufferLength;
+
+	irp->IoStatus.Information = out_length;
 
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, "IOCTL.SYS:  InB=%08lx len=%lx, OutB=%08lx, len=%lx\n", reinterpret_cast<ULONG>(in_buffer), in_length, reinterpret_cast<ULONG>(out_buffer), out_length);
 
